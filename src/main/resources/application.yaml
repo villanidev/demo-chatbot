@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: demo-chatbot
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: gemma3:1b
+    chat:
+      memory:
+        repository:
+          jdbc:
+            # https://docs.spring.io/spring-ai/reference/1.0/api/chat-memory.html#_schema_initialization
+            initialize-schema: always
+            schema: classpath:sql/schema-h2.sql
+  datasource:
+    url: jdbc:h2:file:~/demo-chatbot #file-based storage
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  h2:
+    console:
+      enabled: true
+      path: /h2

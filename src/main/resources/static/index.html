@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Spring AI Chat</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+<body>
+<!-- Sidebar for chat history -->
+<div id="sidebar">
+    <h3>Chat History</h3>
+    <ul id="history-list"></ul>
+</div>
+
+<!-- Main chat area -->
+<div id="chat-container">
+    <div id="messages"></div>
+    <form id="input-form">
+        <input type="text" id="prompt" placeholder="Type your message..." autocomplete="off">
+        <button type="submit">Send</button>
+    </form>
+</div>
+
+<script src="main.js"> </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</body>
+</html>
