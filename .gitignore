@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Ollama ###
+ollama/
+
+### Keytore ###
+src/main/resources/keystore.p12

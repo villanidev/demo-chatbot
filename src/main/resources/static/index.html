@@ -13,10 +13,11 @@
 
 <!-- Main chat area -->
 <div id="chat-container">
+    <div id="loader" style="display:none;" class="loading"></div>
     <div id="messages"></div>
     <form id="input-form">
         <input type="text" id="prompt" placeholder="Type your message..." autocomplete="off">
-        <button type="submit">Send</button>
+        <button type="submit" id="send-btn">Send</button>
     </form>
 </div>
 

@@ -3,9 +3,9 @@ spring:
     name: demo-chatbot
   ai:
     ollama:
-      base-url: http://localhost:11434
+      base-url: ${SPRING_AI_OLLAMA_BASE_URL:http://localhost:11434}
       chat:
-        model: gemma3:1b
+        model: llama3.2:1b # deepseek-r1:1.5b, gemma3:1b
     chat:
       memory:
         repository:
@@ -14,7 +14,7 @@ spring:
             initialize-schema: always
             schema: classpath:sql/schema-h2.sql
   datasource:
-    url: jdbc:h2:file:~/demo-chatbot #file-based storage
+    url: jdbc:h2:mem:~/demo-chatbot
     driverClassName: org.h2.Driver
     username: sa
     password: password
@@ -22,3 +22,11 @@ spring:
     console:
       enabled: true
       path: /h2
+
+server:
+  http2:
+    enabled: true
+  ssl:
+    enabled: true
+    key-store: ${CERTIFICATE_KEYSTORE:classpath:keystore.p12}
+    key-store-password: ${CERTIFICATE_KEYSTORE_PASS:123456}

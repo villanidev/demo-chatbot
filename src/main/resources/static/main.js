@@ -2,6 +2,49 @@ const form = document.getElementById('input-form');
 const promptInput = document.getElementById('prompt');
 const messagesDiv = document.getElementById('messages');
 const historyList = document.getElementById('history-list');
+const sendBtn = document.getElementById('send-btn');
+const chatLoaderDiv = document.getElementById('loader');
+let currentChatId = null;
+
+// Start new conversation
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await fetch('https://localhost:8080/api/chat/generate-chat-id', {
+              method: 'GET'
+        });
+
+        currentChatId = await response.text();
+        console.log(currentChatId);
+        loadConversation(currentChatId);
+      } catch (error) {
+        console.error(error.message);
+      }
+});
+
+// Load conversation history
+async function loadConversation(currentChatId) {
+  try {
+    const response = await fetch(`https://localhost:8080/api/chat/${currentChatId}/messages`, {
+          method: 'GET'
+    });
+
+    if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
+    }
+
+    const messages = await response.json();
+
+    if (messages) {
+        messages.forEach(msg => {
+            console.log(msg.role, msg.text)
+            addMessage(msg.role, msg.text);
+        });
+    }
+
+  } catch (error) {
+    console.error(error.message);
+  }
+}
 
 // Store chat history
 let chatHistory = [];
@@ -11,14 +54,15 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const question = promptInput.value;
   promptInput.value = '';
+  promptInput.disabled = true;
+  sendBtn.disabled = true;
 
   // Add user message to UI and history
   addMessage('user', question);
-  chatHistory.push({ role: 'user', content: question });
 
   // Stream AI response
   const eventSource = new EventSource(
-    `http://localhost:8080/api/chat/stream?chatId=1&question=${encodeURIComponent(question)}`
+    `https://localhost:8080/api/chat/stream?chatId=${currentChatId}&question=${encodeURIComponent(question)}`
   );
 
    // render llm stream response and sanitize and parse the final markdown
@@ -47,30 +91,18 @@ form.addEventListener('submit', async (e) => {
 
   eventSource.onerror = (e) => {
     eventSource.close();
-    //messagesDiv.querySelector('.ai-message:last-child').innerHTML = marked.parse(messagesDiv.querySelector('.ai-message:last-child').textContent)
     chatHistory.push({ role: 'ai', content: chunkResponses });
-    updateHistorySidebar();
+    promptInput.disabled = false;
+    sendBtn.disabled = false;
+    loadConversation(currentChatId);
   }
 });
-
-// Update sidebar with chat history
-function updateHistorySidebar() {
-  historyList.innerHTML = '';
-  chatHistory.forEach((msg, index) => {
-    if (msg.role === 'user') {
-      const li = document.createElement('li');
-      li.textContent = `You: ${msg.content.slice(0, 30)}...`;
-      li.onclick = () => loadHistory(index);
-      historyList.appendChild(li);
-    }
-  });
-}
 
 // Add a message to the UI
 function addMessage(role, content) {
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${role}-message`;
-  if (role === 'user') {
+  if (role === 'user' || role === 'USER') {
     messageDiv.innerHTML = `You: ${content}`;
   } else {
     messageDiv.innerHTML = `Bot: ${content}`;
@@ -79,8 +111,10 @@ function addMessage(role, content) {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-// Load a past conversation (simplified)
-function loadHistory(index) {
-  messagesDiv.innerHTML = '';
-  // Logic to reconstruct the conversation
+function toggleLoading() {
+    if (chatLoaderDiv.style.display === "none") {
+        chatLoaderDiv.style.display = "block";
+    } else {
+        chatLoaderDiv.style.display = "none";
+    }
 }
