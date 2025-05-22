@@ -7,4 +7,4 @@
 ![Architecture](docs/springai-chatbot3.jpg)
 
 ### How I built?
-- WIP
+- Checkout my <a href="[https://github.com/villanidev/demo-chatbot](https://dev.to/villanithiago/spring-ai-and-ollama-building-an-open-source-chatbot-ei5)">post</a> on dev.to
