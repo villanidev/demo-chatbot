@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring AI Chatbot</title>
+    <link rel="stylesheet" href="layout.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <div id="sidebar-header">
+            <button id="toggle-sidebar-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <button id="new-chat-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Nova Conversa</span>
+            </button>
+        </div>
+        <div id="conversation-list">
+            <div class="empty-conversations">Carregando conversas...</div>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div id="chat-container">
+        <div id="chat-header">
+            <span id="chat-title">Selecione ou crie uma conversa</span>
+        </div>
+        <div id="messages">
+            <div class="empty-chat">
+                <p>👋 Olá! Comece uma nova conversa ou selecione uma existente.</p>
+            </div>
+        </div>
+        <div id="input-area">
+            <form id="input-form">
+                <textarea
+                    id="prompt"
+                    placeholder="Digite sua mensagem..."
+                    autocomplete="off"
+                    rows="1"
+                ></textarea>
+                <button type="submit" id="send-btn" disabled>
+                    <span id="send-btn-text">Enviar</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring AI Chat</title>
+    <style>
+        :root {
+            --primary: #10a37f;
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: #f7f7f8;
+        }
+
+        /* Sidebar Styles */
+        #sidebar {
+            width: var(--sidebar-width);
+            height: 100%;
+            background-color: #ffffff;
+            border-right: 1px solid #d9d9e3;
+            transition: width 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        #sidebar-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 80px;
+        }
+
+        #new-chat-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        #toggle-sidebar {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        #conversation-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .conversation-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .conversation-item.active {
+            background-color: rgba(16, 163, 127, 0.1);
+        }
+
+        /* Main Chat Area */
+        #chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .message-container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 16px 20px;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #ffffff;
+            border: 1px solid #d9d9e3;
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background-color: #f7f7f8;
+            border: 1px solid #d9d9e3;
+        }
+
+        /* Input Area */
+        #input-area {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            background-color: #ffffff;
+        }
+
+        #input-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            gap: 10px;
+            position: relative;
+        }
+
+        #prompt-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d9d9e3;
+            border-radius: 4px;
+            font-size: 16px;
+            resize: none;
+            min-height: 60px;
+            max-height: 200px;
+        }
+
+        #send-btn {
+            padding: 0 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            align-self: flex-end;
+            height: 60px;
+        }
+
+        #send-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .loading-icon {
+            display: none;
+            position: absolute;
+            right: 80px;
+            bottom: 20px;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Collapsed Sidebar Styles */
+        #sidebar.collapsed #new-chat-btn span,
+        #sidebar.collapsed .conversation-item {
+            display: none;
+        }
+
+        #sidebar.collapsed #new-chat-btn {
+            justify-content: center;
+            padding: 10px;
+        }
+
+        #sidebar.collapsed #sidebar-header {
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+<!-- Sidebar -->
+<div id="sidebar">
+    <div id="sidebar-header">
+        <button id="new-chat-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span>New chat</span>
+        </button>
+        <button id="toggle-sidebar">≡</button>
+    </div>
+    <div id="conversation-list"></div>
+</div>
+
+<!-- Main Chat Area -->
+<div id="chat-container">
+    <div id="messages">
+        <div class="message-container" id="message-container">
+            <!-- Messages will be inserted here -->
+        </div>
+    </div>
+    <div id="input-area">
+        <div id="input-wrapper">
+                <textarea
+                        id="prompt-input"
+                        placeholder="Type your message..."
+                        rows="1"
+                        autocomplete="off"
+                ></textarea>
+            <div class="loading-icon" id="loading-icon"></div>
+            <button id="send-btn" type="button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM Elements
+    const sidebar = document.getElementById('sidebar');
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const conversationList = document.getElementById('conversation-list');
+    const messageContainer = document.getElementById('message-container');
+    const promptInput = document.getElementById('prompt-input');
+    const sendBtn = document.getElementById('send-btn');
+    const loadingIcon = document.getElementById('loading-icon');
+
+    // State
+    let currentConversationId = null;
+    let isWaitingForResponse = false;
+
+    // Toggle sidebar collapse
+    toggleSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+    });
+
+    // Create new chat
+    newChatBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch(`https://localhost:8080/api/chat/generate-chat-id`, {
+                method: 'GET'
+            });
+
+            if (response.ok) {
+                currentConversationId = await response.text();
+                messageContainer.innerHTML = '';
+                loadConversations();
+            }
+        } catch (error) {
+            console.error('Failed to create conversation:', error);
+        }
+    });
+
+    // Load conversation history
+    async function loadConversations() {
+        try {
+            const response = await fetch(`https://localhost:8080/api/chat/${currentConversationId}/messages`);
+            const conversations = await response.json();
+
+            conversationList.innerHTML = '';
+            conversations.forEach(conversation => {
+                const item = document.createElement('div');
+                item.className = 'conversation-item';
+                item.textContent = conversation.text.slice(0, 3) + '...';
+                item.addEventListener('click', () => loadConversation(currentConversationId));
+                conversationList.appendChild(item);
+            });
+        } catch (error) {
+            console.error('Failed to load conversations:', error);
+        }
+    }
+
+    // Load specific conversation
+    async function loadConversation(conversationId) {
+        currentConversationId = conversationId;
+        try {
+            const response = await fetch(`https://localhost:8080/api/chat/${currentConversationId}/messages`);
+            const messages = await response.json();
+
+            messageContainer.innerHTML = '';
+            messages.forEach(message => {
+                addMessage(message.role, message.text);
+            });
+
+            // Update active conversation in list
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            const activeItem = Array.from(document.querySelectorAll('.conversation-item'))
+                .find(item => item.textContent.includes(conversationId.slice(0, 3)));
+            if (activeItem) activeItem.classList.add('active');
+        } catch (error) {
+            console.error('Failed to load conversation:', error);
+        }
+    }
+
+    // Add message to UI
+    function addMessage(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}-message`;
+        messageDiv.textContent = content;
+        messageContainer.appendChild(messageDiv);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+
+    // Auto-resize textarea
+    promptInput.addEventListener('input', () => {
+        promptInput.style.height = 'auto';
+        promptInput.style.height = `${promptInput.scrollHeight}px`;
+    });
+
+    // Send message
+    sendBtn.addEventListener('click', sendMessage);
+    promptInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    async function sendMessage() {
+        const prompt = promptInput.value.trim();
+        if (!prompt || !currentConversationId || isWaitingForResponse) return;
+
+        // Disable input while waiting
+        isWaitingForResponse = true;
+        promptInput.disabled = true;
+        sendBtn.disabled = true;
+        loadingIcon.style.display = 'block';
+
+        // Add user message
+        addMessage('user', prompt);
+        promptInput.value = '';
+        promptInput.style.height = 'auto';
+
+        try {
+            const eventSource = new EventSource(
+                `https://localhost:8080/api/chat/stream?chatId=${currentConversationId}&question=${encodeURIComponent(prompt)}`
+            );
+
+            let aiResponse = '';
+            const aiMessageDiv = document.createElement('div');
+            aiMessageDiv.className = 'message ai-message';
+            messageContainer.appendChild(aiMessageDiv);
+
+            eventSource.onmessage = (e) => {
+                aiResponse += JSON.parse(e.data).value;
+                aiMessageDiv.textContent = aiResponse;
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            };
+
+            eventSource.onerror = () => {
+                eventSource.close();
+                isWaitingForResponse = false;
+                promptInput.disabled = false;
+                sendBtn.disabled = false;
+                loadingIcon.style.display = 'none';
+            };
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            isWaitingForResponse = false;
+            promptInput.disabled = false;
+            sendBtn.disabled = false;
+            loadingIcon.style.display = 'none';
+        }
+    }
+
+    // Initialize
+    loadConversations();
+</script>
+</body>
+</html>

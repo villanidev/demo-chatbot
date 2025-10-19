@@ -21,13 +21,13 @@ services:
               count: all
               capabilities: [gpu]
   # Spring AI Backend
-  #chat-app:
-    #build:
-      #context: . # Dockerfile in the root folder
-    #container_name: chat-app
-    #ports:
-      #- "8080:8080"
-    #environment:
-      #- SPRING_AI_OLLAMA_BASE_URL=http://ollama:11434
-    #depends_on:
-      #- ollama
+  chat-app:
+    build:
+      context: . # Dockerfile in the root folder
+    container_name: chat-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_AI_OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      - ollama
