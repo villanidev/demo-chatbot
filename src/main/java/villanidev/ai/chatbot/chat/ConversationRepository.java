@@ -16,14 +16,14 @@ public class ConversationRepository {
 
     public List<ConversationSummaryDTO> findAllConversations() {
         String sql = """
-            SELECT 
+            SELECT
                 conversation_id,
-                MIN(timestamp) as first_message_time,
-                MAX(timestamp) as last_message_time,
+                MIN("timestamp") as first_message_time,
+                MAX("timestamp") as last_message_time,
                 (SELECT content FROM SPRING_AI_CHAT_MEMORY 
                  WHERE conversation_id = main.conversation_id 
                  AND type = 'USER' 
-                 ORDER BY timestamp 
+                 ORDER BY "timestamp" 
                  LIMIT 1) as first_user_message
             FROM SPRING_AI_CHAT_MEMORY main
             GROUP BY conversation_id
@@ -45,4 +45,3 @@ public class ConversationRepository {
         });
     }
 }
-
