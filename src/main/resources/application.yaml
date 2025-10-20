@@ -1,11 +1,15 @@
 spring:
   application:
     name: demo-chatbot
+  profiles:
+    active: dev
   ai:
     ollama:
       base-url: ${SPRING_AI_OLLAMA_BASE_URL:http://localhost:11434}
       chat:
-        model: llama3.2:1b # deepseek-r1:1.5b, gemma3:1b
+        model: llama3.2:3b #llama3.2:1b # deepseek-r1:1.5b, gemma3:1b
+      embedding:
+        model: nomic-embed-text
     chat:
       memory:
         repository:
@@ -13,15 +17,57 @@ spring:
             # https://docs.spring.io/spring-ai/reference/1.0/api/chat-memory.html#_schema_initialization
             initialize-schema: always
             schema: classpath:sql/schema-h2.sql
+---
+# Development Profile - H2 Database
+spring:
+  config:
+    activate:
+      on-profile: dev
   datasource:
     url: jdbc:h2:mem:~/demo-chatbot
     driverClassName: org.h2.Driver
     username: sa
     password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
   h2:
     console:
       enabled: true
       path: /h2
+
+---
+# Production Profile - PostgreSQL
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/ragdb}
+    username: ${SPRING_DATASOURCE_USERNAME:raguser}
+    password: ${SPRING_DATASOURCE_PASSWORD:ragpass123}
+    driverClassName: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  ai:
+    chat:
+      memory:
+        repository:
+          jdbc:
+            schema: classpath:sql/rag-schema.sql
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 server:
   http2:
@@ -30,3 +76,8 @@ server:
     enabled: true
     key-store: ${CERTIFICATE_KEYSTORE:classpath:keystore.p12}
     key-store-password: ${CERTIFICATE_KEYSTORE_PASS:123456}
+
+# Logging
+logging:
+  level:
+    villanidev.ai.chatbot.rag: DEBUG

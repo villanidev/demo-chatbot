@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🚀 RAG System - Spring AI + Ollama + PG Vector</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="rag.css" />
+  </head>
+  <body>
+    <!-- Left Sidebar - Document Management -->
+    <div class="sidebar" id="leftSidebar">
+      <!-- Header -->
+      <div class="sidebar-header">
+        <button id="toggle-left-sidebar-btn" class="toggle-btn">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 12H21"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M3 6H21"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M3 18H21"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+        <div class="sidebar-info">
+          <div class="sidebar-title">📚 RAG System</div>
+          <div class="sidebar-subtitle">Spring AI + Ollama + PG Vector</div>
+        </div>
+      </div>
+
+      <!-- Upload Section -->
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">Arraste aqui ou clique</div>
+          <div class="file-types">
+            <span class="file-type">PDF</span>
+            <span class="file-type">TXT</span>
+            <span class="file-type">DOC</span>
+            <span class="file-type">CSV</span>
+          </div>
+          <input
+            type="file"
+            id="fileInput"
+            style="display: none"
+            multiple
+            accept=".pdf,.txt,.doc,.docx,.csv,.xls,.xlsx"
+          />
+        </div>
+      </div>
+
+      <!-- Documents List -->
+      <div class="documents-section">
+        <div class="documents-header">
+          <div class="documents-title">Documentos</div>
+          <div class="documents-count" id="documentsCount">0</div>
+        </div>
+        <div class="documents-list" id="documentsList">
+          <div class="empty-state">
+            <div class="empty-title">Nenhum documento</div>
+            <div class="empty-text">Faça upload de documentos para começar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content - Chat -->
+    <div class="main-content">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="chat-title">💬 Chat RAG</div>
+        <div class="chat-stats">
+          <div class="stat-item">
+            <span>🤖</span>
+            <span>llama3.2:3b</span>
+          </div>
+          <div class="stat-item">
+            <span>🔍</span>
+            <span>nomic-embed-text</span>
+          </div>
+          <div class="stat-item">
+            <span>⚡</span>
+            <span id="responseTime">0ms</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="chat-messages" id="chatMessages">
+        <div class="empty-state">
+          <div class="empty-title">Olá! Sou seu assistente RAG</div>
+          <div class="empty-text">
+            Faça upload de documentos e comece a fazer perguntas.<br />
+            Posso analisar PDFs, textos, planilhas e muito mais!
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input -->
+      <div class="chat-input-container">
+        <div class="chat-input-wrapper">
+          <textarea
+            id="chatInput"
+            class="chat-input"
+            placeholder="Faça uma pergunta sobre seus documentos..."
+            rows="1"
+          ></textarea>
+          <button id="sendBtn" class="send-btn" disabled>➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar - Chat History -->
+    <div class="right-sidebar" id="rightSidebar">
+      <!-- Header -->
+      <div class="right-sidebar-header">
+        <div class="sidebar-info">
+          <div class="sidebar-title">💬 Conversas</div>
+          <div class="sidebar-subtitle">Histórico de chats</div>
+        </div>
+        <button id="toggle-right-sidebar-btn" class="toggle-btn">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 12H21"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M3 6H21"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M3 18H21"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- New Chat Button -->
+      <div class="new-chat-section">
+        <button class="new-chat-btn" id="newChatBtn">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 4V20M4 12H20"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span>Nova Conversa</span>
+        </button>
+      </div>
+
+      <!-- Chat List -->
+      <div class="chat-section">
+        <div class="chat-header-section">
+          <div class="chat-title-section">Conversas Recentes</div>
+          <div class="chat-count" id="chatCount">0</div>
+        </div>
+        <div class="chat-list" id="chatList">
+          <div class="empty-chats">
+            <div class="empty-text">Nenhuma conversa ainda</div>
+            <div class="empty-hint">Inicie uma nova conversa para começar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="rag.js"></script>
+  </body>
+</html>
